@@ -27,8 +27,6 @@ const Nav = () => {
   const router = useRouter();
   const toast = useToast();
 
-  
-
   const handleInput = (event) => {
     const { value } = event.target;
     setDesc(value);
@@ -49,7 +47,7 @@ const Nav = () => {
         duration: 3000,
         isClosable: true,
       });
-      
+
       router.push("/auth/login");
     } else {
       toast({
@@ -60,7 +58,6 @@ const Nav = () => {
         isClosable: true,
       });
     }
-    
   };
 
   const handleClose = () => {
@@ -109,7 +106,11 @@ const Nav = () => {
         <IconButton icon={<IoMdAdd />} onClick={handleAddOpen} />
 
         <Flex alignItems="center">
-          <IconButton mr={4} icon={<IoIosNotifications />} />
+          <IconButton
+            mr={4}
+            icon={<IoIosNotifications />}
+            onClick={() => router.push("/notification")}
+          />
           <IconButton mr={4} icon={<BiLogOutCircle />} onClick={handleLogout} />
           <Avatar name={me?.name} onClick={() => router.push("/profile")} />
         </Flex>

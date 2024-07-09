@@ -28,11 +28,13 @@ export default function profile({ data }) {
         </Box>
 
         {data?.data.map((item) => (
-          <Cards
-            name={item.user.name}
-            desc={item.description}
-            email={item.user.email}
-          />
+          <Box mb={10}>
+            <Cards
+              name={item.user.name}
+              desc={item.description}
+              email={item.user.email}
+            />
+          </Box>
         ))}
       </Box>
     </Layout>

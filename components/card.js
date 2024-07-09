@@ -1,33 +1,36 @@
+import { LikeContext } from "@/context/likes_context";
+import { ReplyContext } from "@/context/reply_context";
 import {
-  Box,
-  Text,
-  Heading,
+  useToast,
   Card,
   CardHeader,
-  CardBody,
-  CardFooter,
   Flex,
   Avatar,
+  Text,
+  Box,
+  CardFooter,
   Button,
+  Heading,
+  CardBody,
   Textarea,
-  useToast,
 } from "@chakra-ui/react";
-
-import { BiLike, BiChat } from "react-icons/bi";
-import DropdownMenu from "./dropdown";
+import { useRouter } from "next/router";
 import { useContext, useState, useEffect } from "react";
-import { ReplyContext } from "@/context/reply_context";
+import { BiLike, BiChat, BiSolidLike } from "react-icons/bi";
+import DropdownMenu from "./dropdown";
 import Modals from "./modals";
 import CardsDivider from "./card_divider";
 
-export default function Cards({ name, desc, email, id }) {
+export default function Cards({ name, desc, email, id, like }) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [commentId, setCommentId] = useState(null);
+  const [liked, setLiked] = useState(like || false);
 
   const { getReply, reply, loading } = useContext(ReplyContext);
-
+  const { likePost, unLikePost } = useContext(LikeContext);
   const toast = useToast();
+  const router = useRouter();
 
   const handleInput = (event) => {
     const { value } = event.target;
@@ -50,36 +53,76 @@ export default function Cards({ name, desc, email, id }) {
   const handleComment = async (event) => {
     event.preventDefault();
 
-    const result = await getReply({ id: commentId });
+    try {
+      setLoading(true);
+      const result = await getReply({ id });
+
+      if (result.success) {
+        toast({
+          title: "Comment Success.",
+          description: "Your Reply has been posted successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        router.reload();
+        toast({
+          title: "Error.",
+          description: "Failed to post Reply.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        console.log("Failed to post Reply:", result.error);
+      }
+    } catch (error) {
+      console.error("Error posting reply:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLike = async (e) => {
+    e.preventDefault();
+
+    let result;
+
+    if (!liked) {
+      result = await likePost({ id });
+    } else {
+      result = await unLikePost({ id });
+    }
 
     if (result.success) {
       toast({
-        title: "Comment Success.",
-        description: "Your Reply has been posted successfully.",
+        title: !liked ? "Like Success." : "Unlike Success",
+        description: !liked ? "Your Like successfully." : "Unlike Successfully",
         status: "success",
         duration: 3000,
         isClosable: true,
       });
 
-      router.reload();
+      setLiked(!liked);
     } else {
       toast({
         title: "Error.",
-        description: "Failed to post Reply.",
+        description: "Failed to Like post ",
         status: "error",
         duration: 3000,
         isClosable: true,
       });
-      console.log("Failed to post Reply:", result.error);
+
+      console.error("Failed to like post:", result.error);
+
     }
   };
-
-  const repliesCount = reply && reply.data ? reply.data.length : 0;
 
   return (
     <Card maxW="md">
       <CardHeader>
-        <Flex spacing="4">
+        <Flex spacing="10" >
           <Flex flex="1" gap="4" alignItems="center" flexWrap="wrap">
             <Avatar name={name} />
             <Box>
@@ -103,7 +146,12 @@ export default function Cards({ name, desc, email, id }) {
           },
         }}
       >
-        <Button flex="1" variant="ghost" leftIcon={<BiLike />}>
+        <Button
+          flex="1"
+          variant="ghost"
+          leftIcon={liked ? <BiSolidLike /> : <BiLike />}
+          onClick={handleLike}
+        >
           Like
         </Button>
         <Button
@@ -112,7 +160,7 @@ export default function Cards({ name, desc, email, id }) {
           variant="ghost"
           leftIcon={<BiChat />}
         >
-          {repliesCount }Comment
+          Comment
         </Button>
       </CardFooter>
 

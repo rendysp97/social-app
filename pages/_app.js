@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/context/auth_context";
+import LikeProvider from "@/context/likes_context";
 import { PostProvider } from "@/context/post_context";
 import ReplyProvider from "@/context/reply_context";
 import "@/styles/globals.css";
@@ -10,7 +11,9 @@ export default function App({ Component, pageProps }) {
       <AuthProvider>
         <PostProvider>
           <ReplyProvider>
-            <Component {...pageProps} />
+            <LikeProvider>
+              <Component {...pageProps} />
+            </LikeProvider>
           </ReplyProvider>
         </PostProvider>
       </AuthProvider>
