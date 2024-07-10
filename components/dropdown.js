@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import Modals from "./modals";
 import { PostContext } from "@/context/post_context";
 
-export default function DropdownMenu({ id, description }) {
+export default function DropdownMenu({ id, description, ownPost }) {
   const [isEditOpen, setEditOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [inputEdit, setInputEdit] = useState(null);
@@ -26,7 +26,6 @@ export default function DropdownMenu({ id, description }) {
   const router = useRouter();
 
   const { editPost, deletePost } = useContext(PostContext);
-
 
   const handleInput = (event) => {
     const { value, name } = event.target;
@@ -81,7 +80,6 @@ export default function DropdownMenu({ id, description }) {
 
   const handleDelete = async () => {
     const result = await deletePost({ id: deletedId });
-    
 
     if (result.success) {
       toast({
@@ -107,19 +105,21 @@ export default function DropdownMenu({ id, description }) {
 
   return (
     <>
-      <Menu>
-        <MenuButton
-          as={IconButton}
-          variant="ghost"
-          colorScheme="gray"
-          aria-label="See menu"
-          icon={<BsThreeDotsVertical />}
-        />
-        <MenuList>
-          <MenuItem onClick={handleEditOpen}>Edit</MenuItem>
-          <MenuItem onClick={handleDeleteOpen}>Delete</MenuItem>
-        </MenuList>
-      </Menu>
+      {ownPost ? (
+        <Menu>
+          <MenuButton
+            as={IconButton}
+            variant="ghost"
+            colorScheme="gray"
+            aria-label="See menu"
+            icon={<BsThreeDotsVertical />}
+          />
+          <MenuList>
+            <MenuItem onClick={handleEditOpen}>Edit</MenuItem>
+            <MenuItem onClick={handleDeleteOpen}>Delete</MenuItem>
+          </MenuList>
+        </Menu>
+      ) : null}
 
       <Modals
         isOpen={isEditOpen}

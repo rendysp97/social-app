@@ -37,6 +37,9 @@ export default function dashboard({ data }) {
           {data?.data?.map((item) => (
             <React.Fragment key={item.id}>
               <Cards
+                ownPost={item.is_own_post}
+                replies={item.replies_count}
+                count={item.likes_count}
                 like={item.is_like_post}
                 id={item.id}
                 name={item.user.name}

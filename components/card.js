@@ -15,19 +15,28 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState } from "react";
 import { BiLike, BiChat, BiSolidLike } from "react-icons/bi";
 import DropdownMenu from "./dropdown";
 import Modals from "./modals";
 import CardsDivider from "./card_divider";
 
-export default function Cards({ name, desc, email, id, like }) {
+export default function Cards({
+  name,
+  desc,
+  email,
+  id,
+  like,
+  count,
+  replies,
+  ownPost,
+}) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [commentId, setCommentId] = useState(null);
   const [liked, setLiked] = useState(like || false);
 
-  const { getReply, reply, loading } = useContext(ReplyContext);
+  const { getReply, reply, loading, postReply } = useContext(ReplyContext);
   const { likePost, unLikePost } = useContext(LikeContext);
   const toast = useToast();
   const router = useRouter();
@@ -48,40 +57,6 @@ export default function Cards({ name, desc, email, id, like }) {
     setIsCommentOpen(true);
 
     await getReply({ id });
-  };
-
-  const handleComment = async (event) => {
-    event.preventDefault();
-
-    try {
-      setLoading(true);
-      const result = await getReply({ id });
-
-      if (result.success) {
-        toast({
-          title: "Comment Success.",
-          description: "Your Reply has been posted successfully.",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-
-        router.reload();
-        toast({
-          title: "Error.",
-          description: "Failed to post Reply.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-
-        console.log("Failed to post Reply:", result.error);
-      }
-    } catch (error) {
-      console.error("Error posting reply:", error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleLike = async (e) => {
@@ -115,14 +90,37 @@ export default function Cards({ name, desc, email, id, like }) {
       });
 
       console.error("Failed to like post:", result.error);
+    }
+  };
 
+  const handlePostReply = async () => {
+    const result = await postReply({ id, description });
+
+    if (result.success) {
+      toast({
+        title: "Reply Success.",
+        description: "Add Replies",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      router.reload();
+    } else {
+      toast({
+        title: "Error.",
+        description: "Error Add Replies",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
   return (
     <Card maxW="md">
       <CardHeader>
-        <Flex spacing="10" >
+        <Flex spacing="10">
           <Flex flex="1" gap="4" alignItems="center" flexWrap="wrap">
             <Avatar name={name} />
             <Box>
@@ -130,7 +128,7 @@ export default function Cards({ name, desc, email, id, like }) {
               <Text>{email}</Text>
             </Box>
           </Flex>
-          <DropdownMenu id={id} description={desc} />
+          <DropdownMenu id={id} description={desc} ownPost={ownPost} />
         </Flex>
       </CardHeader>
       <CardBody>
@@ -152,7 +150,7 @@ export default function Cards({ name, desc, email, id, like }) {
           leftIcon={liked ? <BiSolidLike /> : <BiLike />}
           onClick={handleLike}
         >
-          Like
+          {count} Like
         </Button>
         <Button
           onClick={handleCommentOpen}
@@ -160,7 +158,7 @@ export default function Cards({ name, desc, email, id, like }) {
           variant="ghost"
           leftIcon={<BiChat />}
         >
-          Comment
+          {replies} Comment
         </Button>
       </CardFooter>
 
@@ -168,7 +166,7 @@ export default function Cards({ name, desc, email, id, like }) {
         isOpen={isCommentOpen}
         onClose={handleClose}
         actionType="add"
-        handleAdd={handleComment}
+        handleAdd={handlePostReply}
       >
         <Textarea
           onChange={handleInput}
@@ -187,9 +185,10 @@ export default function Cards({ name, desc, email, id, like }) {
         ) : reply?.data?.length > 0 ? (
           reply.data.map((item) => (
             <CardsDivider
-              key={item.id}
+              id={item.id}
               name={item.user.name}
               description={item.description}
+              ownReply={item.is_own_reply}
             />
           ))
         ) : (

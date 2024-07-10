@@ -21,18 +21,60 @@ const ReplyProvider = ({ children }) => {
       );
 
       setReply(response.data);
-      setLoading(false); 
+      setLoading(false);
 
       return { success: true, data: response.data };
     } catch (error) {
-      console.error("Error fetching reply:", error);
       setLoading(false);
       return { success: false, error };
     }
   };
 
+  const postReply = async ({ id, description }) => {
+    try {
+      await axios.post(
+        `https://service.pace-unv.cloud/api/replies/post/${id}`,
+        {
+          description: description,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        }
+      );
+      setLoading(false)
+      return { success: true };
+    } catch (err) {
+      console.log(err);
+      return { success: false };
+    }
+  };
+
+  const deleteReplyPost = async ({ id }) => {
+    setLoading(true)
+    try {
+      await axios.delete(
+        `https://service.pace-unv.cloud/api/replies/delete/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        }
+      );
+      setLoading(false)
+      return { success: true };
+    } catch (err) {
+      console.log(err);
+      setLoading(false)
+    }
+    return { success: false };
+  };
+
   return (
-    <ReplyContext.Provider value={{ reply, getReply, loading }}>
+    <ReplyContext.Provider
+      value={{ reply, getReply, loading, postReply, deleteReplyPost }}
+    >
       {children}
     </ReplyContext.Provider>
   );
